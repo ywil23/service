@@ -1,0 +1,28 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Statesync
+network: Testnet
+icon: worrell
+chain: worrell-testnet-1
+version: v0.1.2
+---
+
+```
+sudo systemctl stop worrelld
+cp $HOME/.worrell/data/priv_validator_state.json $HOME/.worrell/priv_validator_state.json.backup
+worrelld comet unsafe-reset-all --home $HOME/.worrell --keep-addr-book
+```
+```
+SNAP_RPC="https://rpc-t.worrell.vinjan-inc.com"
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 1000)); \
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+sed -i "/\[statesync\]/, /^enable =/ s/=.*/= true/;\
+/^rpc_servers =/ s|=.*|= \"$SNAP_RPC,$SNAP_RPC\"|;\
+/^trust_height =/ s/=.*/= $BLOCK_HEIGHT/;\
+/^trust_hash =/ s/=.*/= \"$TRUST_HASH\"/" $HOME/.worrell/config/config.toml
+```
+```
+sudo systemctl restart worrelld
+sudo journalctl -u worrelld -f -o cat
+```
