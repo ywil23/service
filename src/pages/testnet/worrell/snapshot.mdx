@@ -1,0 +1,31 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Snapshot
+network: Testnet
+icon: worrell
+chain: worrell-testnet-1
+version: v0.1.2
+---
+
+Update Every 12 Hours
+
+
+```
+sudo systemctl stop worrelld
+```
+```
+cp $HOME/.worrell/data/priv_validator_state.json $HOME/.worrell/priv_validator_state.json.backup
+```
+```
+worrelld comet unsafe-reset-all --home $HOME/.worrell --keep-addr-book
+```
+```
+curl -L https://snapshot.vinjan-inc.com/worrell/latest.tar.lz4 | lz4 -dc - | tar -xf - -C $HOME/.worrell
+```
+```
+mv $HOME/.worrell/priv_validator_state.json.backup $HOME/.worrell/data/priv_validator_state.json
+```
+```
+sudo systemctl restart worrelld
+sudo journalctl -u worrelld -f -o cat
+```
