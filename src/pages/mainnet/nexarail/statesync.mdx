@@ -3,12 +3,18 @@ layout: '~/layouts/MarkdownLayout.astro'
 title: Statesync
 network: Mainnet
 icon: nxrl
-chain: nexarail-mainnet-1
-version: v0.1.0-rc1-validator-recovery-hotfix
+chain: nexarail-mainnet-2
+version: mainnet-genesis-nexarail-mainnet-2
 ---
 
 ```
 sudo systemctl stop nexaraild
+```
+```
+cp $HOME/.nexarail/data/priv_validator_state.json $HOME/.nexarail/priv_validator_state.json.backup
+```
+```
+rm -rf $HOME/.nexarail/data/{application.db,evidence.db,snapshots,blockstore.db,state.db,cs.wal}
 ```
 ```
 SNAP_RPC="https://rpc-nexarail.vinjan-inc.com"
@@ -19,6 +25,9 @@ sed -i "/\[statesync\]/, /^enable =/ s/=.*/= true/;\
 /^rpc_servers =/ s|=.*|= \"$SNAP_RPC,$SNAP_RPC\"|;\
 /^trust_height =/ s/=.*/= $BLOCK_HEIGHT/;\
 /^trust_hash =/ s/=.*/= \"$TRUST_HASH\"/" $HOME/.nexarail/config/config.toml
+```
+```
+mv $HOME/.nexarail/priv_validator_state.json.backup $HOME/.nexarail/data/priv_validator_state.json
 ```
 ```
 sudo systemctl restart nexaraild
