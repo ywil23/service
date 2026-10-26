@@ -1,0 +1,141 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Installation Node
+network: Mainnet
+icon: luxa
+chain: luxa-1
+version: v1.0.0
+---
+
+### Hardware requirements
+
+The following requirements are recommended:
+
+- 8 or more physical CPU cores
+- At least 400GB of SSD disk storage
+- At least 8GB of memory (RAM)
+- At least 100mbps network bandwidth
+
+
+### Install dependencies Required
+
+```
+sudo apt update && sudo apt upgrade -y && sudo apt install curl tar wget clang pkg-config libssl-dev jq build-essential bsdmainutils git make ncdu gcc git jq chrony liblz4-tool -y
+```
+
+### Install go
+
+We are gonna use GO Version 1.24.5
+If you already have GO installed you can skip this 
+
+```
+ver="1.24.5"
+wget "https://golang.org/dl/go$ver.linux-amd64.tar.gz"
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf "go$ver.linux-amd64.tar.gz"
+rm "go$ver.linux-amd64.tar.gz"
+echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> ~/.bash_profile
+source ~/.bash_profile
+go version
+```
+
+
+### Install binary
+```
+cd $HOME
+rm -rf luxa-chain
+git clone https://github.com/luxaecosystem/luxa-chain.git
+cd luxa-chain
+git checkout v1.0.0
+make install
+```
+
+Verify that you've installed successfully
+
+```
+luxad version --long | grep -e commit -e version
+```
+
+### Initialize Node
+
+Please change `<MONIKER>` To your own Moniker.
+
+```
+luxad init <MONIKER> --chain-id luxa-1
+```
+
+### Download Genesis file and addrbook
+
+- Genesis
+
+```
+curl -L https://snapshot.vinjan-inc.com/luxa/genesis.json > $HOME/.luxa/config/genesis.json
+```
+
+- Addrbook
+```
+curl -L https://snapshot.vinjan-inc.com/luxa/addrbook.json > $HOME/.luxa/config/addrbook.json
+```
+
+### Configure Gas 
+```
+sed -i -e "s/^minimum-gas-prices *=.*/minimum-gas-prices = \"0.001uluxa\"/" $HOME/.luxa/config/app.toml
+```
+
+### Prunning
+```
+sed -i \
+-e 's|^pruning *=.*|pruning = "custom"|' \
+-e 's|^pruning-keep-recent *=.*|pruning-keep-recent = "100"|' \
+-e 's|^pruning-keep-every *=.*|pruning-keep-every = ""|' \
+-e 's|^pruning-interval *=.*|pruning-interval = "20"|' \
+$HOME/.luxa/config/app.toml
+```
+
+### Indexer Off
+```
+sed -i 's|^indexer *=.*|indexer = "null"|' $HOME/.luxa/config/config.toml
+```
+
+### create service file and start node
+
+Create service file
+
+```
+sudo tee /etc/systemd/system/luxad.service > /dev/null <<EOF
+[Unit]
+Description=luxa
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which luxad) start
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+- Enable Service and Start Node
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable luxad
+```
+
+### Snapshot or Statesync
+<a href="https://vinjan-inc.com/mainnet/luxa/snapshot" target="_blank">
+  <button style="background-color: green; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" onmouseover="this.style.boxShadow='0 0 0 4px rgba(0,255,0,0.5)'" onmouseout="this.style.boxShadow='0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'">Snapshot</button>
+</a>
+
+<a href="https://vinjan-inc.com/mainnet/luxa/statesync" target="_blank">
+  <button style="background-color: green; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);" onmouseover="this.style.boxShadow='0 0 0 4px rgba(0,255,0,0.5)'" onmouseout="this.style.boxShadow='0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'">Statesync</button>
+</a>
+
+```
+sudo systemctl restart luxad
+sudo journalctl -u luxad -f -o cat
+```
