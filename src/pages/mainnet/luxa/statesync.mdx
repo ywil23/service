@@ -1,0 +1,37 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Statesync
+network: Mainnet
+icon: luxa
+chain: luxa-1
+version: v1.0.0
+---
+
+```
+sudo systemctl stop luxad
+```
+```
+cp $HOME/.luxa/data/priv_validator_state.json $HOME/.luxa/priv_validator_state.json.backup
+```
+```
+luxad comet unsafe-reset-all --home $HOME/.luxa --keep-addr-book
+```
+```
+SNAP_RPC="https://rpc-luxa.vinjan-inc.com:443"
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 1000))
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+sed -i \
+-e "s|^enable *=.*|enable = true|" \
+-e "s|^rpc_servers *=.*|rpc_servers = \"$SNAP_RPC,$SNAP_RPC\"|" \
+-e "s|^trust_height *=.*|trust_height = $BLOCK_HEIGHT|" \
+-e "s|^trust_hash *=.*|trust_hash = \"$TRUST_HASH\"|" \
+$HOME/.luxa/config/config.toml
+```
+```
+mv $HOME/.luxa/priv_validator_state.json.backup $HOME/.luxa/data/priv_validator_state.json
+```
+```
+sudo systemctl restart luxad
+sudo journalctl -u luxad -f -o cat
+```
