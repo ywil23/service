@@ -1,0 +1,29 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Snapshot
+network: Mainnet
+icon: luxa
+chain: luxa-1
+version: v1.0.0
+---
+Update Everyday 12 Hours
+
+```
+sudo systemctl stop luxad
+```
+```
+cp $HOME/.luxa/data/priv_validator_state.json $HOME/.luxa/priv_validator_state.json.backup
+```
+```
+luxad comet unsafe-reset-all --home $HOME/.luxa --keep-addr-book
+```
+```
+curl -L https://snapshot.vinjan-inc.com/luxa/latest.tar.lz4 | lz4 -dc - | tar -xf - -C $HOME/.luxa
+```
+```
+mv $HOME/.luxa/priv_validator_state.json.backup $HOME/.luxa/data/priv_validator_state.json
+```
+```
+sudo systemctl restart luxad
+sudo journalctl -u luxad -f -o cat
+```
