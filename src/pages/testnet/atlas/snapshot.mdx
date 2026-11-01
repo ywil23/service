@@ -1,0 +1,30 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Snapshot
+network: Testnet
+icon: atlas
+chain: itineraria-1
+version: v0.1.0
+---
+
+Update Every 12 Hours
+
+```
+sudo systemctl stop atlasd
+```
+```
+cp $HOME/.atlas/data/priv_validator_state.json $HOME/.atlas/priv_validator_state.json.backup
+```
+```
+atlasd comet unsafe-reset-all --home $HOME/.atlas --keep-addr-book
+```
+```
+curl -L https://snapshot.vinjan-inc.com/atlas-testnet/latest.tar.lz4 | lz4 -dc - | tar -xf - -C $HOME/.atlas
+```
+```
+mv $HOME/.atlas/priv_validator_state.json.backup $HOME/.atlas/data/priv_validator_state.json
+```
+```
+sudo systemctl restart atlasd
+sudo journalctl -u atlasd -f -o cat
+```
