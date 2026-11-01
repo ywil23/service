@@ -1,0 +1,28 @@
+---
+layout: '~/layouts/MarkdownLayout.astro'
+title: Statesync
+network: Testnet
+icon: atlas
+chain: itineraria-1
+version: v0.1.0
+---
+
+```
+sudo systemctl stop atlasd
+cp $HOME/.atlas/data/priv_validator_state.json $HOME/.atlas/priv_validator_state.json.backup
+atlasd comet unsafe-reset-all --home $HOME/.atlas --keep-addr-book
+```
+```
+SNAP_RPC="https://rpc-t.atlas.vinjan-inc.com"
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 1000)); \
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+sed -i "/\[statesync\]/, /^enable =/ s/=.*/= true/;\
+/^rpc_servers =/ s|=.*|= \"$SNAP_RPC,$SNAP_RPC\"|;\
+/^trust_height =/ s/=.*/= $BLOCK_HEIGHT/;\
+/^trust_hash =/ s/=.*/= \"$TRUST_HASH\"/" $HOME/.atlas/config/config.toml
+```
+```
+sudo systemctl restart atlasd
+sudo journalctl -u atlasd -f -o cat
+```
