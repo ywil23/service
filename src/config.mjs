@@ -3,7 +3,7 @@ import defaultImage from './assets/images/vinjan.png';
 const CONFIG = {
   name: 'vinjan',
 
-  origin: 'https://service.vinjan.xyz/',
+  origin: 'https://vinjan-inc.com',
   basePathname: '/',
   trailingSlash: false,
 
